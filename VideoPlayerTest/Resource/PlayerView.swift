@@ -107,15 +107,20 @@ class PlayerView: UIView {
 //        }
     
     func setupPlayer() {
-        self.playerLayer?.removeFromSuperlayer()
+//        self.playerLayer?.removeFromSuperlayer()
         self.playerLayer = reel?.player
         self.playerLayer?.videoGravity = .resizeAspectFill
         self.playerLayer?.frame = self.imageView.bounds
         if self.playerLayer != nil {
             self.imageView.layer.addSublayer(self.playerLayer!)
         }
+        self.playerLayer?.opacity = 1
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.playerLayer?.frame = self.imageView.bounds
+    }
     
     func play() {
         
@@ -144,10 +149,12 @@ class PlayerView: UIView {
     
     func removePlayer() {
         removeObserver()
+        self.playerLayer?.opacity = 0
         timer?.invalidate()
         timer = nil
         self.playerLayer?.player?.pause()
-        self.playerLayer?.removeFromSuperlayer()
+        
+//        self.playerLayer?.removeFromSuperlayer()
         self.playerLayer = nil
     }
 }

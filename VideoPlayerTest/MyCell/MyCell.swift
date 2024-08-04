@@ -166,6 +166,11 @@ class MyCell: UITableViewCell {
         timer?.invalidate()
         currentIndex = 0
     }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        removePlayer()
+    }
 }
 
 
