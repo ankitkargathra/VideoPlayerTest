@@ -15,7 +15,9 @@ class MyCell: UITableViewCell {
     var stackView = UIStackView()
     
     var reels: ReelItems?
+    var playerArr: [PlayerView] = []
     
+    var indexPath: IndexPath?
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupSubviews()
@@ -30,6 +32,7 @@ class MyCell: UITableViewCell {
     func setupSubviews() {
         
         stackView.axis = .vertical
+        stackView.spacing = 5
         contentView.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -42,6 +45,8 @@ class MyCell: UITableViewCell {
         topHStack.addArrangedSubview(secondItem)
         firstITem.translatesAutoresizingMaskIntoConstraints = false
         secondItem.translatesAutoresizingMaskIntoConstraints = false
+        topHStack.spacing = 5
+        bottomHStack.spacing = 5
         
         bottomHStack.addArrangedSubview(thirdItem)
         bottomHStack.addArrangedSubview(forthItem)
@@ -54,7 +59,7 @@ class MyCell: UITableViewCell {
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 120),
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
-
+        
         NSLayoutConstraint.activate([
             topHStack.heightAnchor.constraint(equalTo: bottomHStack.heightAnchor),
         ])
@@ -66,10 +71,12 @@ class MyCell: UITableViewCell {
             thirdItem.widthAnchor.constraint(equalTo: forthItem.widthAnchor),
             thirdItem.heightAnchor.constraint(equalTo: forthItem.heightAnchor),
         ])
+        
+        playerArr = [firstITem, secondItem, thirdItem, forthItem]
     }
     
     func setCell(viewModel: ReelListViewModel, indexPath: IndexPath) {
-        
+        self.indexPath = indexPath
         reels = viewModel.reels[indexPath.row]
         
         if let first = reels?.first {
@@ -96,37 +103,54 @@ class MyCell: UITableViewCell {
         secondItem.setupPlayer()
         thirdItem.setupPlayer()
         forthItem.setupPlayer()
-        startPLayingLoop()
+//        startPLayingLoop()
+        self.startPLayingLoop()
     }
     
     var timer: Timer?
     var currentIndex: Int = 0
     
     func startPLayingLoop() {
-        currentIndex = 0
-        timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true, block: { [weak self] timer in
-            guard let `self` = self else { return }
-            self.currentIndex += 1
-            self.play()
-            
-        })
-        play()
+//        currentIndex = 0
+//        timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true, block: { [weak self] timer in
+//            guard let `self` = self else { return }
+//            self.currentIndex += 1
+//            self.processNextItem()
+//
+//        })
+//        processNextItem()
+        
+        print("Start \(indexPath)")
+        firstITem.playCompltion { [weak self] in
+            self?.firstITem.stop()
+            self?.secondItem.playCompltion { [weak self] in
+                self?.secondItem.stop()
+                self?.thirdItem.playCompltion { [weak self] in
+                    self?.thirdItem.stop()
+                    self?.forthItem.playCompltion { [weak self] in
+                        self?.forthItem.stop()
+                        print("finished \(self?.indexPath)")
+                        self?.startPLayingLoop()
+                    }
+
+                }
+            }
+        }
     }
     
-    func play() {
-        if currentIndex == 0 {
-            firstITem.play()
-        } else if currentIndex == 1 {
-            firstITem.stop()
-            secondItem.play()
-        } else if currentIndex == 2 {
-            secondItem.stop()
-            thirdItem.play()
-        } else if currentIndex == 3 {
-            thirdItem.stop()
-            forthItem.play()
+    func processNextItem() {
+        if currentIndex < playerArr.count {
+            
+            let item = playerArr[currentIndex]
+            // Process the item here
+            if currentIndex > 0 {
+                playerArr[currentIndex - 1].stop()
+                item.play()
+            } else {
+                item.play()
+            }
         } else {
-            forthItem.stop()
+            playerArr[currentIndex - 1].stop()
             currentIndex = 0
             timer?.invalidate()
             startPLayingLoop()
@@ -134,6 +158,7 @@ class MyCell: UITableViewCell {
     }
     
     func removePlayer() {
+        print("Stop \(indexPath)")
         firstITem.removePlayer()
         secondItem.removePlayer()
         thirdItem.removePlayer()
@@ -143,69 +168,4 @@ class MyCell: UITableViewCell {
     }
 }
 
-class PlayerView: UIView {
-    
-    var playerLayer: AVPlayerLayer?
-    var imageView = UIImageView()
-    
-    var reel: Reel?
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        addSubView()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        addSubView()
-    }
-    
-    func addSubView() {
-        addSubview(imageView)
-        imageView.clipsToBounds = true
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            imageView.leadingAnchor.constraint(equalTo: imageView.superview!.leadingAnchor, constant: 0),
-            imageView.trailingAnchor.constraint(equalTo: imageView.superview!.trailingAnchor, constant: 0),
-            imageView.topAnchor.constraint(equalTo: imageView.superview!.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: imageView.superview!.bottomAnchor)
-        ])
-    }
-    
-    func setItem(reel: Reel) {
-        self.reel = reel
-        imageView.contentMode = .scaleAspectFill
-        imageView.kf.setImage(with: reel.thimbNailUrl, placeholder: UIImage(named: "placeholder"))
-    }
-    
-    func setupPlayer() {
-        if let url = URL.init(string: self.reel?.video ?? "") {
-            
-            let item = AVPlayerItem(url: url)
-            let player = AVPlayer(playerItem: item)
-            self.playerLayer = AVPlayerLayer(player: player)
-            playerLayer?.player?.currentItem?.reversePlaybackEndTime = CMTime.init(seconds: 3, preferredTimescale: 0)
-            self.playerLayer?.videoGravity = .resizeAspectFill
-            self.playerLayer?.frame = self.imageView.bounds
-            self.imageView.layer.addSublayer(self.playerLayer!)
-            reel?.player = playerLayer
-        }
-    }
-    
-    func play() {
-        
-        playerLayer?.player?.play()
-    }
-    
-    func stop() {
-        playerLayer?.player?.pause()
-        playerLayer?.player?.seek(to: CMTime.zero)
-    }
-    
-    func removePlayer() {
-        self.playerLayer?.player?.pause()
-        self.playerLayer?.removeFromSuperlayer()
-        self.playerLayer = nil
-        
-    }
-}
+

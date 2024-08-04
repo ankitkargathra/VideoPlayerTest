@@ -58,6 +58,7 @@ class Reel: Codable {
     var video: String?
     var thumbnail: String?
     
+    var completedDownlaod: (() -> ())?
     var thimbNailUrl: URL? {
         return URL.init(string: thumbnail ?? "")
     }
@@ -68,7 +69,52 @@ class Reel: Codable {
         case thumbnail
     }
     
-    var player: AVPlayerLayer?
+    var _player: AVPlayerLayer?
+    
+    var player: AVPlayerLayer? {
+        if let url = URL(string: video ?? "") ,_player == nil {
+            if let lclUrl = VideoDownloader.shared.cachedVideoURL(for: url) {
+                let item = AVPlayerItem(url: lclUrl)
+                let player = AVPlayer(playerItem: item)
+                self._player = AVPlayerLayer(player: player)
+                return self._player
+            } else {
+                return nil
+            }
+        } else {
+            return _player
+        }
+    }
+    
+    
+    func validateCompletedDownload() {
+        VideoDownloader.shared.downloadCompletion = { [weak self] localUrl in
+            guard let localUrl = localUrl else {return }
+            guard let `self` = self else {
+                return
+            }
+            if self.video == localUrl.absoluteString {
+                
+                let item = AVPlayerItem(url: localUrl)
+                let player = AVPlayer(playerItem: item)
+                self._player = AVPlayerLayer(player: player)
+            }
+        }
+    }
+    
+    func startDownload() {
+        if let video = video, let url = URL(string: video) {
+            VideoDownloader.shared.downloadVideo(from: url) { [weak self] localUrl in
+                guard let `self` = self, let localUrl = localUrl else {
+                    return
+                }
+                let item = AVPlayerItem(url: localUrl)
+                let player = AVPlayer(playerItem: item)
+                self._player = AVPlayerLayer(player: player)
+                
+            }
+        }
+    }
     
     required init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -76,14 +122,7 @@ class Reel: Codable {
         self._id = try values.decodeIfPresent(String.self, forKey: ._id)
         self.video = try values.decodeIfPresent(String.self, forKey: .video)
         self.thumbnail = try values.decodeIfPresent(String.self, forKey: .thumbnail)
-//        if let video = video, let url = URL(string: video) {
-//            self.player = AVPlayerLayer.init(player: AVPlayer(url: url))
-//            self.player?.videoGravity = .resizeAspectFill
-//            self.player?.player?.currentItem?.reversePlaybackEndTime = CMTime.init(seconds: 3, preferredTimescale: 0)
-//            self.player?.player?.rate = 2.0
-//        }
+        startDownload()
+        validateCompletedDownload()
     }
-    
-    
-
 }

@@ -16,6 +16,8 @@
 		B98C4E382C5FC039006C1455 /* MyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98C4E342C5FC039006C1455 /* MyCell.swift */; };
 		B98C4E392C5FC039006C1455 /* ReelsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98C4E362C5FC039006C1455 /* ReelsListViewModel.swift */; };
 		B98C4E3C2C5FC059006C1455 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = B98C4E3B2C5FC059006C1455 /* Kingfisher */; };
+		B98C4E3E2C5FC8CB006C1455 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98C4E3D2C5FC8CB006C1455 /* PlayerView.swift */; };
+		B98C4E402C5FD627006C1455 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98C4E3F2C5FD627006C1455 /* CacheManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +31,8 @@
 		B98C4E322C5FC039006C1455 /* reels.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = reels.json; sourceTree = "<group>"; };
 		B98C4E342C5FC039006C1455 /* MyCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyCell.swift; sourceTree = "<group>"; };
 		B98C4E362C5FC039006C1455 /* ReelsListViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReelsListViewModel.swift; sourceTree = "<group>"; };
+		B98C4E3D2C5FC8CB006C1455 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		B98C4E3F2C5FD627006C1455 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +68,7 @@
 			children = (
 				B98C4E1C2C5FBEFC006C1455 /* AppDelegate.swift */,
 				B98C4E202C5FBEFC006C1455 /* ViewController.swift */,
+				B98C4E3F2C5FD627006C1455 /* CacheManager.swift */,
 				B98C4E222C5FBEFC006C1455 /* Main.storyboard */,
 				B98C4E252C5FBEFD006C1455 /* Assets.xcassets */,
 				B98C4E272C5FBEFD006C1455 /* LaunchScreen.storyboard */,
@@ -79,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				B98C4E322C5FC039006C1455 /* reels.json */,
+				B98C4E3D2C5FC8CB006C1455 /* PlayerView.swift */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -180,6 +186,8 @@
 				B98C4E382C5FC039006C1455 /* MyCell.swift in Sources */,
 				B98C4E212C5FBEFC006C1455 /* ViewController.swift in Sources */,
 				B98C4E392C5FC039006C1455 /* ReelsListViewModel.swift in Sources */,
+				B98C4E3E2C5FC8CB006C1455 /* PlayerView.swift in Sources */,
+				B98C4E402C5FD627006C1455 /* CacheManager.swift in Sources */,
 				B98C4E1D2C5FBEFC006C1455 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
