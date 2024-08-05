@@ -111,7 +111,7 @@ class MyCell: UITableViewCell {
     
     func startPLayingLoop() {
         
-        print("Paying indexpath \(self.indexPath)")
+        //print("Paying indexpath \(self.indexPath)")
         firstITem.playCompltion(player: getPlayer(lclUrl: firstITem.reel?.localUrl)) { [weak self] in
             guard let self = self else { return }
             self.firstITem.stop()

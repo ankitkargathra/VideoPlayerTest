@@ -98,7 +98,7 @@ class VideoDownloader {
     
     func restartAllDownloadTasks() {
         for (key, _) in downloadTasks {
-            if let downloadTask = downloadTasks[key] {
+            if downloadTasks[key] != nil {
                downloadVideo(from: key, completion: {_ in})
             }
             print("Task \(key) restarted")
