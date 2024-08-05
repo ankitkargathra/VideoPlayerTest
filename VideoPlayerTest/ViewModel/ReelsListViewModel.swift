@@ -69,50 +69,16 @@ class Reel: Codable {
         case thumbnail
     }
     
-    var _player: AVPlayerLayer?
-    
-    var player: AVPlayerLayer? {
-        if let url = URL(string: video ?? "") ,_player == nil {
-            if let lclUrl = VideoDownloader.shared.cachedVideoURL(for: url) {
-                let item = AVPlayerItem(url: lclUrl)
-                let player = AVPlayer(playerItem: item)
-                self._player = AVPlayerLayer(player: player)
-                return self._player
-            } else {
-                return nil
-            }
-        } else {
-            return _player
+    var localUrl: URL? {
+        if let url = URL(string: video ?? "") {
+            return VideoDownloader.shared.cachedVideoURL(for: url)
         }
-    }
-    
-    
-    func validateCompletedDownload() {
-        VideoDownloader.shared.downloadCompletion = { [weak self] localUrl in
-            guard let localUrl = localUrl else {return }
-            guard let `self` = self else {
-                return
-            }
-            if self.video == localUrl.absoluteString {
-                
-                let item = AVPlayerItem(url: localUrl)
-                let player = AVPlayer(playerItem: item)
-                self._player = AVPlayerLayer(player: player)
-            }
-        }
+        return nil
     }
     
     func startDownload() {
         if let video = video, let url = URL(string: video) {
-            VideoDownloader.shared.downloadVideo(from: url) { [weak self] localUrl in
-                guard let `self` = self, let localUrl = localUrl else {
-                    return
-                }
-                let item = AVPlayerItem(url: localUrl)
-                let player = AVPlayer(playerItem: item)
-                self._player = AVPlayerLayer(player: player)
-                
-            }
+            VideoDownloader.shared.downloadVideo(from: url) { _ in }
         }
     }
     
@@ -123,6 +89,5 @@ class Reel: Codable {
         self.video = try values.decodeIfPresent(String.self, forKey: .video)
         self.thumbnail = try values.decodeIfPresent(String.self, forKey: .thumbnail)
         startDownload()
-        validateCompletedDownload()
     }
 }

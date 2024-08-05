@@ -1,4 +1,5 @@
 import Foundation
+import AVKit
 import UIKit
 import Kingfisher
 import AVFoundation
@@ -18,6 +19,9 @@ class MyCell: UITableViewCell {
     var playerArr: [PlayerView] = []
     
     var indexPath: IndexPath?
+    var player: AVPlayer?
+    var playerLayer: AVPlayerLayer?
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupSubviews()
@@ -99,72 +103,51 @@ class MyCell: UITableViewCell {
         guard reels != nil else {
             return
         }
-        firstITem.setupPlayer()
-        secondItem.setupPlayer()
-        thirdItem.setupPlayer()
-        forthItem.setupPlayer()
-//        startPLayingLoop()
-        self.startPLayingLoop()
+        startPLayingLoop()
     }
     
     var timer: Timer?
     var currentIndex: Int = 0
     
     func startPLayingLoop() {
-//        currentIndex = 0
-//        timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true, block: { [weak self] timer in
-//            guard let `self` = self else { return }
-//            self.currentIndex += 1
-//            self.processNextItem()
-//
-//        })
-//        processNextItem()
         
-        print("Start \(indexPath)")
-        firstITem.playCompltion { [weak self] in
-            self?.firstITem.stop()
-            self?.secondItem.playCompltion { [weak self] in
-                self?.secondItem.stop()
-                self?.thirdItem.playCompltion { [weak self] in
-                    self?.thirdItem.stop()
-                    self?.forthItem.playCompltion { [weak self] in
-                        self?.forthItem.stop()
-                        print("finished \(self?.indexPath)")
-                        self?.startPLayingLoop()
+        print("Paying indexpath \(self.indexPath)")
+        firstITem.playCompltion(player: getPlayer(lclUrl: firstITem.reel?.localUrl)) { [weak self] in
+            guard let self = self else { return }
+            self.firstITem.stop()
+            self.secondItem.playCompltion(player: self.getPlayer(lclUrl: self.secondItem.reel?.localUrl)) { [weak self] in
+                guard let self = self else { return }
+                self.secondItem.stop()
+                self.thirdItem.playCompltion(player: self.getPlayer(lclUrl: self.thirdItem.reel?.localUrl)){ [weak self] in
+                    guard let self = self else { return }
+                    self.thirdItem.stop()
+                    self.forthItem.playCompltion(player: self.getPlayer(lclUrl: self.forthItem.reel?.localUrl)) { [weak self] in
+                        guard let self = self else { return }
+                        self.forthItem.stop()
+                        self.startPLayingLoop()
                     }
-
                 }
             }
         }
     }
     
-    func processNextItem() {
-        if currentIndex < playerArr.count {
-            
-            let item = playerArr[currentIndex]
-            // Process the item here
-            if currentIndex > 0 {
-                playerArr[currentIndex - 1].stop()
-                item.play()
-            } else {
-                item.play()
-            }
-        } else {
-            playerArr[currentIndex - 1].stop()
-            currentIndex = 0
-            timer?.invalidate()
-            startPLayingLoop()
+    func getPlayer(lclUrl: URL?) -> AVPlayerLayer? {
+        guard let lclUrl = lclUrl else {
+            return nil
         }
+        let item = AVPlayerItem(url: lclUrl)
+        let player = AVPlayer(playerItem: item)
+        self.playerLayer = AVPlayerLayer(player: player)
+        return self.playerLayer
     }
     
     func removePlayer() {
-        print("Stop \(indexPath)")
-        firstITem.removePlayer()
-        secondItem.removePlayer()
-        thirdItem.removePlayer()
-        forthItem.removePlayer()
         timer?.invalidate()
         currentIndex = 0
+        firstITem.stop()
+        secondItem.stop()
+        thirdItem.stop()
+        forthItem.stop()
     }
     
     override func prepareForReuse() {

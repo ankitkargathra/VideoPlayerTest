@@ -6,9 +6,11 @@
 //
 
 import UIKit
+import Reachability
 
 class ViewController: UIViewController {
     
+    let reachability = try! Reachability()
     private var viewModel = ReelListViewModel()
     var previousCell: MyCell?
     @IBOutlet weak var tableView: UITableView!
@@ -16,32 +18,41 @@ class ViewController: UIViewController {
     var reels: [ReelItems] {
         viewModel.reels
     }
+    @IBOutlet weak var txtLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("ReelCount \(reels.count)")
-        // Do any additional setup after loading the view.
+
+        addReachabilityObserver()
+        tableView.allowsSelection = false
     }
     
+    func addReachabilityObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(reachabilityChanged(note:)), name: .reachabilityChanged, object: reachability)
+            do{
+              try reachability.startNotifier()
+            } catch {
+              print("could not start reachability notifier")
+            }
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.previousCell = self.tableView.mostVisibleCell()
-            self.previousCell?.setPlayer()
+            if let previousIndexPath = self.tableView.getMostVisibleIndexPath() {
+                self.previousIndexPath = previousIndexPath
+                let cell = self.tableView.cellForRow(at: previousIndexPath) as? MyCell
+                cell?.startPLayingLoop()
+            }
         }
     }
-
-
 }
 
 extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        reels.count
+        return reels.count
     }
-    
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
@@ -68,14 +79,6 @@ extension ViewController: UITableViewDelegate {
 extension ViewController: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        if let cell = tableView.mostVisibleCell() {
-//            if previousCell != cell {
-//                previousCell?.removePlayer()
-//                previousCell = nil
-//            } else {
-//                print("Same cell")
-//            }
-//        }
         
         if let indexPath = tableView.getMostVisibleIndexPath() {
             
@@ -93,91 +96,27 @@ extension ViewController: UIScrollViewDelegate {
             }
         }
         
-//        print(tableView.getMostVisibleIndexPath())
-    }
-    
-
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-//        stopScroll()
-    }
-    
-    func stopScroll() {
-        if let cell = tableView.mostVisibleCell() {
-            if previousCell != cell {
-                previousCell = cell
-                previousCell?.setPlayer()
-            } else {
-                print("Same cell")
-            }
-        }
-
-    }
-    
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-//        if (!decelerate) {
-//            stopScroll()
-//        }
     }
 }
 
-extension UITableView {
-    func mostVisibleCell() -> MyCell? {
+extension ViewController {
+    
+    @objc func reachabilityChanged(note: Notification) {
 
-        guard let indexPaths = indexPathsForVisibleRows else {
-            return nil
-        }
+      let reachability = note.object as! Reachability
 
-        if let fullyVisibleIndexPaths = indexPaths.filter({ indexPath in
-            // Filter out all the partially visible cells
-            let cellFrame = rectForRow(at: indexPath)
-            let isCellFullyVisible = bounds.contains(cellFrame)
-            return isCellFullyVisible
-        }).first {
-            return cellForRow(at: fullyVisibleIndexPaths) as? MyCell
-        }
-
-        return nil
-
+      switch reachability.connection {
+      case .wifi, .cellular:
+          VideoDownloader.shared.restartAllDownloadTasks()
+          txtLabel.text = "You are online"
+          txtLabel.textColor = .green
+      case .unavailable:
+          VideoDownloader.shared.cancelAllDownloadTasks()
+          txtLabel.text = "You are offline"
+          txtLabel.textColor = .red
+      }
     }
 }
-
-//import UIKit
-
-//extension UITableView {
-//
-//    func mostVisibleCell() -> MyCell? {
-//        // Calculate the center of the visible rect
-//        let visibleRect = CGRect(origin: self.contentOffset, size: self.bounds.size)
-//        let visibleRectCenter = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
-//
-//        // Get all visible cells
-//        let visibleCells = self.visibleCells
-//
-//        // Variables to store the closest cell and the minimum distance
-//        var closestCell: UITableViewCell?
-//        var minimumDistance: CGFloat = CGFloat.greatestFiniteMagnitude
-//
-//        for cell in visibleCells {
-//            // Calculate the center of the cell in the table view's coordinate system
-//            let cellCenter = self.convert(cell.center, to: self)
-//
-//            // Calculate the distance from the cell's center to the visible rect center
-//            let distance = sqrt(pow(cellCenter.x - visibleRectCenter.x, 2) +
-//                                pow(cellCenter.y - visibleRectCenter.y, 2))
-//
-//            // Update the closest cell if this one is closer
-//            if distance < minimumDistance {
-//                minimumDistance = distance
-//                closestCell = cell
-//            }
-//        }
-//
-//        return closestCell as? MyCell
-//    }
-//}
-
-import UIKit
 
 extension UITableView {
 

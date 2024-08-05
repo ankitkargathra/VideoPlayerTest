@@ -1,10 +1,3 @@
-//
-//  CacheManager.swift
-//  VideoPlayerTest
-//
-//  Created by Govind ravaliya on 04/08/24.
-//
-
 import Foundation
 
 class VideoDownloader {
@@ -89,6 +82,26 @@ class VideoDownloader {
         if let downloadTask = downloadTasks[url] {
             downloadTask.cancel()
             downloadTasks.removeValue(forKey: url)
+        }
+    }
+    
+    func cancelAllDownloadTasks() {
+        for (key, _) in downloadTasks {
+            if let downloadTask = downloadTasks[key] {
+                downloadTask.cancel()
+            }
+            
+        }
+        
+    }
+    
+    
+    func restartAllDownloadTasks() {
+        for (key, _) in downloadTasks {
+            if let downloadTask = downloadTasks[key] {
+               downloadVideo(from: key, completion: {_ in})
+            }
+            print("Task \(key) restarted")
         }
     }
 }
